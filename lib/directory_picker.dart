@@ -83,7 +83,7 @@ class _DirectoryPickerDialog extends StatefulWidget {
 class _DirectoryPickerDialogState extends State<_DirectoryPickerDialog>
     with WidgetsBindingObserver {
   static final double spacing = 8;
-  static final PermissionGroup requiredPermission = PermissionGroup.storage;
+  static final Permission requiredPermission = Permission.storage;
 
   bool canPrompt = true;
   bool checkingForPermission = false;
@@ -115,9 +115,8 @@ class _DirectoryPickerDialogState extends State<_DirectoryPickerDialog>
   /// if permission is not granter
   Future<void> _getPermissionStatus() async {
     PermissionStatus updatedStatus =
-        await PermissionHandler().checkPermissionStatus(requiredPermission);
-    final updatedCanPrompt = await PermissionHandler()
-      .shouldShowRequestPermissionRationale(requiredPermission);
+        await requiredPermission.status;
+    final updatedCanPrompt = await requiredPermission.shouldShowRequestRationale;
 
     setState(() {
       canPrompt = updatedCanPrompt;
@@ -127,17 +126,16 @@ class _DirectoryPickerDialogState extends State<_DirectoryPickerDialog>
 
   Future<void> _requestPermission() async {
     if (canPrompt) {
-      final updatedStatusMap =
-          await PermissionHandler().requestPermissions([requiredPermission]);
-      final updatedCanPrompt = await PermissionHandler()
-          .shouldShowRequestPermissionRationale(requiredPermission);
+      final requiredPermissionStatus =
+          await requiredPermission.status;
+      final updatedCanPrompt =await requiredPermission.shouldShowRequestRationale;
 
       setState(() {
-        status = updatedStatusMap[requiredPermission];
+        status = requiredPermissionStatus;
         canPrompt = updatedCanPrompt;
       });
     } else {
-      await PermissionHandler().openAppSettings();
+      await openAppSettings();
     }
   }
 
@@ -158,7 +156,7 @@ class _DirectoryPickerDialogState extends State<_DirectoryPickerDialog>
           ));
     } else if (status == PermissionStatus.granted) {
       return DirectoryList();
-    } else if (status == PermissionStatus.disabled) {
+    } else if (status == PermissionStatus.denied) {
       return Center(
         child: Padding(
           padding: EdgeInsets.all(spacing * 2),
